@@ -1,0 +1,537 @@
+openapi: 3.0.3
+info:
+  title: Divoom PIXOO64 API
+  description: |
+    REST API for controlling the Divoom PIXOO64 device.
+
+    This API allows you to control the PIXOO64 LED display, including:
+    - Device management (reboot, screen settings)
+    - Display text and images
+    - Configure timers, stopwatches, scoreboards
+    - Get weather and time information
+
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://{deviceIP}:80
+    description: PIXOO64 Device Local API
+    variables:
+      deviceIP:
+        default: '192.168.1.180'
+        description: IP address of your PIXOO64 device
+
+tags:
+  - name: Device
+    description: Device management
+  - name: Display
+    description: Display and channel settings
+  - name: Drawing
+    description: Drawing text and images
+  - name: Tools
+    description: Timers, stopwatches, scoreboards
+  - name: System
+    description: System settings (time, weather)
+
+paths:
+  /post:
+    post:
+      summary: Universal command endpoint
+      description: Universal entry point for all device commands
+      tags:
+        - Device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/SysRebootRequest'
+                - $ref: '#/components/schemas/SetBrightnessRequest'
+                - $ref: '#/components/schemas/SendTextRequest'
+                - $ref: '#/components/schemas/GetAllConfRequest'
+                - $ref: '#/components/schemas/SetTimerRequest'
+            examples:
+              reboot:
+                summary: Reboot device
+                value:
+                  Command: Device/SysReboot
+              brightness:
+                summary: Set brightness
+                value:
+                  Command: Channel/SetBrightness
+                  Brightness: 80
+              text:
+                summary: Display text
+                value:
+                  Command: Draw/SendHttpText
+                  TextId: 1
+                  x: 0
+                  y: 24
+                  dir: 0
+                  font: 4
+                  TextWidth: 64
+                  speed: 10
+                  TextString: "Hello!"
+                  color: "#00FF00"
+                  align: 2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+
+components:
+  schemas:
+    StandardResponse:
+      type: object
+      properties:
+        error_code:
+          type: integer
+          description: 0 = success, non-zero = error
+          example: 0
+
+    # Device Management Requests
+    SysRebootRequest:
+      type: object
+      required:
+        - Command
+      properties:
+        Command:
+          type: string
+          enum: [Device/SysReboot]
+          example: Device/SysReboot
+
+    OnOffScreenRequest:
+      type: object
+      required:
+        - Command
+        - OnOff
+      properties:
+        Command:
+          type: string
+          enum: [Channel/OnOffScreen]
+        OnOff:
+          type: integer
+          enum: [0, 1]
+          description: 0 = off, 1 = on
+
+    SetScreenRotationRequest:
+      type: object
+      required:
+        - Command
+        - Mode
+      properties:
+        Command:
+          type: string
+          enum: [Device/SetScreenRotationAngle]
+        Mode:
+          type: integer
+          minimum: 0
+          maximum: 3
+          description: 0=normal, 1=90°, 2=180°, 3=270°
+
+    SetMirrorModeRequest:
+      type: object
+      required:
+        - Command
+        - Mode
+      properties:
+        Command:
+          type: string
+          enum: [Device/SetMirrorMode]
+        Mode:
+          type: integer
+          enum: [0, 1]
+          description: 0 = disabled, 1 = enabled
+
+    SetWhiteBalanceRequest:
+      type: object
+      required:
+        - Command
+        - RValue
+        - GValue
+        - BValue
+      properties:
+        Command:
+          type: string
+          enum: [Device/SetWhiteBalance]
+        RValue:
+          type: integer
+          minimum: 0
+          maximum: 100
+        GValue:
+          type: integer
+          minimum: 0
+          maximum: 100
+        BValue:
+          type: integer
+          minimum: 0
+          maximum: 100
+
+    GetDeviceTimeRequest:
+      type: object
+      required:
+        - Command
+      properties:
+        Command:
+          type: string
+          enum: [Device/GetDeviceTime]
+
+    DeviceTimeResponse:
+      type: object
+      properties:
+        error_code:
+          type: integer
+        UTCTime:
+          type: integer
+          format: int64
+        LocalTime:
+          type: string
+
+    SetUTCRequest:
+      type: object
+      required:
+        - Command
+        - Utc
+      properties:
+        Command:
+          type: string
+          enum: [Device/SetUTC]
+        Utc:
+          type: integer
+          format: int64
+          description: UTC timestamp in seconds
+
+    PlayBuzzerRequest:
+      type: object
+      required:
+        - Command
+        - ActiveTimeInCycle
+        - OffTimeInCycle
+        - PlayTotalTime
+      properties:
+        Command:
+          type: string
+          enum: [Device/PlayBuzzer]
+        ActiveTimeInCycle:
+          type: integer
+          description: Active time in milliseconds
+        OffTimeInCycle:
+          type: integer
+          description: Off time in milliseconds
+        PlayTotalTime:
+          type: integer
+          description: Total play time in milliseconds
+
+    # Display/Channel Requests
+    SetBrightnessRequest:
+      type: object
+      required:
+        - Command
+        - Brightness
+      properties:
+        Command:
+          type: string
+          enum: [Channel/SetBrightness]
+          example: Channel/SetBrightness
+        Brightness:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 80
+
+    GetAllConfRequest:
+      type: object
+      required:
+        - Command
+      properties:
+        Command:
+          type: string
+          enum: [Channel/GetAllConf]
+
+    AllConfigResponse:
+      type: object
+      properties:
+        error_code:
+          type: integer
+        Brightness:
+          type: integer
+          minimum: 0
+          maximum: 100
+        RotationFlag:
+          type: integer
+        ClockTime:
+          type: integer
+        GalleryTime:
+          type: integer
+        SingleGalleyTime:
+          type: integer
+        PowerOnChannelId:
+          type: integer
+        GalleryShowTimeFlag:
+          type: integer
+        CurClockId:
+          type: integer
+        Time24Flag:
+          type: integer
+        TemperatureMode:
+          type: integer
+        GyrateAngle:
+          type: integer
+        MirrorFlag:
+          type: integer
+        LightSwitch:
+          type: integer
+
+    # Drawing Requests
+    SendTextRequest:
+      type: object
+      required:
+        - Command
+        - TextId
+        - x
+        - y
+        - dir
+        - font
+        - TextWidth
+        - speed
+        - TextString
+        - color
+        - align
+      properties:
+        Command:
+          type: string
+          enum: [Draw/SendHttpText]
+          example: Draw/SendHttpText
+        TextId:
+          type: integer
+          description: Text area ID
+          example: 1
+        x:
+          type: integer
+          description: X position
+          example: 0
+        y:
+          type: integer
+          description: Y position
+          example: 24
+        dir:
+          type: integer
+          enum: [0, 1]
+          description: 0 = left, 1 = right
+          example: 0
+        font:
+          type: integer
+          description: Font ID
+          example: 4
+        TextWidth:
+          type: integer
+          description: Text width in pixels
+          example: 64
+        speed:
+          type: integer
+          description: Scroll speed in milliseconds
+          example: 10
+        TextString:
+          type: string
+          maxLength: 512
+          description: UTF-8 text string
+          example: "Hello, PIXOO64!"
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+          description: Hex color code
+          example: "#00FF00"
+        align:
+          type: integer
+          enum: [1, 2, 3]
+          description: 1 = left, 2 = center, 3 = right
+          example: 2
+
+    ClearTextRequest:
+      type: object
+      required:
+        - Command
+      properties:
+        Command:
+          type: string
+          enum: [Draw/ClearHttpText]
+
+    SendGifRequest:
+      type: object
+      required:
+        - Command
+        - PicNum
+        - PicWidth
+        - PicOffset
+        - PicID
+        - PicSpeed
+        - PicData
+      properties:
+        Command:
+          type: string
+          enum: [Draw/SendHttpGif]
+        PicNum:
+          type: integer
+          description: Number of frames
+        PicWidth:
+          type: integer
+          description: Picture width (64 for PIXOO64)
+        PicOffset:
+          type: integer
+          description: Frame offset
+        PicID:
+          type: integer
+          description: Picture ID
+        PicSpeed:
+          type: integer
+          description: Animation speed in milliseconds
+        PicData:
+          type: string
+          description: Base64 encoded image data
+
+    ResetGifIDRequest:
+      type: object
+      required:
+        - Command
+      properties:
+        Command:
+          type: string
+          enum: [Draw/ResetHttpGifId]
+
+    # Tools Requests
+    SetTimerRequest:
+      type: object
+      required:
+        - Command
+        - Minute
+        - Second
+        - Status
+      properties:
+        Command:
+          type: string
+          enum: [Tools/SetTimer]
+        Minute:
+          type: integer
+          minimum: 0
+          maximum: 59
+        Second:
+          type: integer
+          minimum: 0
+          maximum: 59
+        Status:
+          type: integer
+          enum: [0, 1]
+          description: 0 = stop, 1 = start
+
+    SetStopWatchRequest:
+      type: object
+      required:
+        - Command
+        - Status
+      properties:
+        Command:
+          type: string
+          enum: [Tools/SetStopWatch]
+        Status:
+          type: integer
+          enum: [0, 1, 2]
+          description: 0 = stop, 1 = start, 2 = reset
+
+    SetScoreBoardRequest:
+      type: object
+      required:
+        - Command
+        - BlueScore
+        - RedScore
+      properties:
+        Command:
+          type: string
+          enum: [Tools/SetScoreBoard]
+        BlueScore:
+          type: integer
+        RedScore:
+          type: integer
+
+    SetNoiseStatusRequest:
+      type: object
+      required:
+        - Command
+        - NoiseStatus
+      properties:
+        Command:
+          type: string
+          enum: [Tools/SetNoiseStatus]
+        NoiseStatus:
+          type: integer
+          enum: [0, 1]
+          description: 0 = off, 1 = on
+
+    # System Requests
+    SetLocationRequest:
+      type: object
+      required:
+        - Command
+        - Longitude
+        - Latitude
+      properties:
+        Command:
+          type: string
+          enum: [Sys/LogAndLat]
+        Longitude:
+          type: string
+          example: "30.29"
+        Latitude:
+          type: string
+          example: "20.58"
+
+    SetTimeZoneRequest:
+      type: object
+      required:
+        - Command
+        - TimeZone
+      properties:
+        Command:
+          type: string
+          enum: [Sys/TimeZone]
+        TimeZone:
+          type: string
+          example: "America/New_York"
+
+    GetWeatherInfoRequest:
+      type: object
+      required:
+        - Command
+      properties:
+        Command:
+          type: string
+          enum: [Device/GetWeatherInfo]
+
+    WeatherInfoResponse:
+      type: object
+      properties:
+        error_code:
+          type: integer
+        Weather:
+          type: string
+        CurTemp:
+          type: integer
+        MinTemp:
+          type: integer
+        MaxTemp:
+          type: integer
+        Pressure:
+          type: integer
+        Humidity:
+          type: integer
+        Visibility:
+          type: integer
+        WindSpeed:
+          type: number
+          format: float
