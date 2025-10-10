@@ -74,9 +74,9 @@ type AllConfigResponse struct {
 type WeatherInfo struct {
 	ErrorCode  int     `json:"error_code"`
 	Weather    string  `json:"Weather"`
-	CurTemp    int     `json:"CurTemp"`
-	MinTemp    int     `json:"MinTemp"`
-	MaxTemp    int     `json:"MaxTemp"`
+	CurTemp    float64 `json:"CurTemp"`
+	MinTemp    float64 `json:"MinTemp"`
+	MaxTemp    float64 `json:"MaxTemp"`
 	Pressure   int     `json:"Pressure"`
 	Humidity   int     `json:"Humidity"`
 	Visibility int     `json:"Visibility"`

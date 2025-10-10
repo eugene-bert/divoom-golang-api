@@ -15,14 +15,36 @@ func main() {
 	// Create a new client
 	client := divoom.NewClient(deviceIP)
 
+	// IMPORTANT: Switch to Custom channel (3) for custom displays
+	fmt.Println("Switching to Custom channel...")
+	if err := client.SetChannelIndex(3); err != nil {
+		log.Printf("Error switching channel: %v\n", err)
+	}
+	time.Sleep(500 * time.Millisecond)
+
 	// Example 1: Set brightness
 	fmt.Println("Setting brightness to 80...")
 	if err := client.SetBrightness(80); err != nil {
 		log.Printf("Error setting brightness: %v\n", err)
 	}
 
-	// Example 2: Display text
-	fmt.Println("Displaying text...")
+	// Example 2: Display text (EASY WAY - recommended!)
+	fmt.Println("Displaying text (using DisplayText helper)...")
+	if err := client.DisplayText("Hello PIXOO64!", "#00FF00"); err != nil {
+		log.Printf("Error displaying text: %v\n", err)
+	}
+
+	time.Sleep(3 * time.Second)
+
+	// Example 2b: Display text (MANUAL WAY - shows the details)
+	fmt.Println("Displaying text (manual way)...")
+	// First send a blank screen (text overlays on animations/GIFs)
+	if err := client.SendBlankScreen(); err != nil {
+		log.Printf("Error sending blank screen: %v\n", err)
+	}
+	time.Sleep(200 * time.Millisecond)
+
+	// Then send the text
 	err := client.SendText(divoom.TextParams{
 		TextID:     1,
 		X:          0,
@@ -103,7 +125,7 @@ func main() {
 		log.Printf("Error getting weather: %v\n", err)
 	} else {
 		fmt.Printf("Weather: %s\n", weather.Weather)
-		fmt.Printf("Temperature: %d°C\n", weather.CurTemp)
+		fmt.Printf("Temperature: %.1f°C\n", weather.CurTemp)
 		fmt.Printf("Humidity: %d%%\n", weather.Humidity)
 	}
 

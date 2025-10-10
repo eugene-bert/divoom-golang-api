@@ -116,6 +116,25 @@ Sets gallery subscription time in seconds.
 err := client.SetSubscribeGalleryTime(60)
 ```
 
+### SetChannelIndex
+Sets the active channel. **CRITICAL for custom displays!**
+```go
+err := client.SetChannelIndex(3) // 0=Faces, 1=Cloud, 2=Visualizer, 3=Custom, 4=Black
+```
+
+### GetChannelIndex
+Gets the current active channel index.
+```go
+channelIndex, err := client.GetChannelIndex()
+// Returns: 0-4
+```
+
+### SetCustomPageIndex
+Sets the custom page index (0-2). Only works when channel is set to Custom (3).
+```go
+err := client.SetCustomPageIndex(0)
+```
+
 ## Drawing (drawing.go)
 
 ### SendText

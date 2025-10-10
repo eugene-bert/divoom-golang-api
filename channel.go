@@ -46,3 +46,56 @@ func (c *Client) SetSubscribeGalleryTime(timeSeconds int) error {
 	_, err := c.sendCommand(payload)
 	return err
 }
+
+// SetChannelIndex sets the active channel
+// selectIndex: 0=Faces, 1=Cloud Channel, 2=Visualizer, 3=Custom, 4=Black screen
+func (c *Client) SetChannelIndex(selectIndex int) error {
+	if selectIndex < 0 || selectIndex > 4 {
+		return fmt.Errorf("invalid channel index: %d (must be 0-4)", selectIndex)
+	}
+
+	payload := map[string]interface{}{
+		"Command":     "Channel/SetIndex",
+		"SelectIndex": selectIndex,
+	}
+	_, err := c.sendCommand(payload)
+	return err
+}
+
+// GetChannelIndex gets the current active channel index
+func (c *Client) GetChannelIndex() (int, error) {
+	payload := map[string]string{
+		"Command": "Channel/GetIndex",
+	}
+
+	var result struct {
+		ErrorCode   int `json:"error_code"`
+		SelectIndex int `json:"SelectIndex"`
+	}
+
+	err := c.sendCommandWithResponse(payload, &result)
+	if err != nil {
+		return 0, err
+	}
+
+	if result.ErrorCode != 0 {
+		return 0, fmt.Errorf("device returned error code: %d", result.ErrorCode)
+	}
+
+	return result.SelectIndex, nil
+}
+
+// SetCustomPageIndex sets the custom page index (0-2)
+// Only works when channel is set to Custom (index 3)
+func (c *Client) SetCustomPageIndex(customPageIndex int) error {
+	if customPageIndex < 0 || customPageIndex > 2 {
+		return fmt.Errorf("invalid custom page index: %d (must be 0-2)", customPageIndex)
+	}
+
+	payload := map[string]interface{}{
+		"Command":         "Channel/SetCustomPageIndex",
+		"CustomPageIndex": customPageIndex,
+	}
+	_, err := c.sendCommand(payload)
+	return err
+}
