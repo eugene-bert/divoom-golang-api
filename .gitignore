@@ -10,12 +10,18 @@
 
 # Output of the go coverage tool
 *.out
+*.prof
 
 # Dependency directories
 vendor/
 
 # Go workspace file
 go.work
+go.work.sum
+
+# Build output
+/bin/
+/dist/
 
 # IDE
 .idea/
@@ -23,8 +29,18 @@ go.work
 *.swp
 *.swo
 *~
+.claude/
 
 # OS
 .DS_Store
+Thumbs.db
 
-/.specstory/*
+# Project specific
+/.specstory/
+
+# Example binaries
+basic_text
+canvas_drawing
+animated_graph
+
+/examples/*

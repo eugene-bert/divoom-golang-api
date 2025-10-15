@@ -171,3 +171,23 @@ func (c *Client) PlayBuzzer(params BuzzerParams) error {
 	_, err := c.sendCommand(payload)
 	return err
 }
+
+// SetClockFace sets the clock face by ID
+func (c *Client) SetClockFace(clockID int) error {
+	payload := map[string]interface{}{
+		"Command": "Channel/SetClockSelectId",
+		"ClockId": clockID,
+	}
+	_, err := c.sendCommand(payload)
+	return err
+}
+
+// SetVisualizer sets the audio visualizer equalizer position
+func (c *Client) SetVisualizer(equalizerPosition int) error {
+	payload := map[string]interface{}{
+		"Command":    "Channel/SetEqPosition",
+		"EqPosition": equalizerPosition,
+	}
+	_, err := c.sendCommand(payload)
+	return err
+}

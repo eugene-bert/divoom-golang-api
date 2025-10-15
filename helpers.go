@@ -2,6 +2,10 @@ package divoom
 
 import (
 	"encoding/base64"
+	"fmt"
+	"image/color"
+	"image/gif"
+	"os"
 	"time"
 )
 
@@ -160,4 +164,76 @@ func (c *Client) DisplayText(text string, color string, opts ...TextOption) erro
 
 	// Step 5: Overlay the text on the blank screen
 	return c.SendText(params)
+}
+
+// PlayLocalGif loads and plays a GIF file from the local filesystem
+func (c *Client) PlayLocalGif(filePath string) error {
+	// Open the GIF file
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open GIF file: %w", err)
+	}
+	defer file.Close()
+
+	// Decode the GIF
+	gifImg, err := gif.DecodeAll(file)
+	if err != nil {
+		return fmt.Errorf("failed to decode GIF: %w", err)
+	}
+
+	if len(gifImg.Image) == 0 {
+		return fmt.Errorf("GIF has no frames")
+	}
+
+	// Reset GIF ID before sending
+	if err := c.ResetGifID(); err != nil {
+		return err
+	}
+	time.Sleep(100 * time.Millisecond)
+
+	// Send each frame
+	for i, frame := range gifImg.Image {
+		// Convert frame to 64x64 RGB bytes
+		pixels := make([]byte, 64*64*3)
+		bounds := frame.Bounds()
+
+		for y := 0; y < 64; y++ {
+			for x := 0; x < 64; x++ {
+				// Scale coordinates if image is not 64x64
+				srcX := bounds.Min.X + (x * bounds.Dx() / 64)
+				srcY := bounds.Min.Y + (y * bounds.Dy() / 64)
+
+				var col color.Color
+				if srcX < bounds.Max.X && srcY < bounds.Max.Y {
+					col = frame.At(srcX, srcY)
+				} else {
+					col = color.Black
+				}
+
+				r, g, b, _ := col.RGBA()
+				idx := (y*64 + x) * 3
+				pixels[idx] = byte(r >> 8)
+				pixels[idx+1] = byte(g >> 8)
+				pixels[idx+2] = byte(b >> 8)
+			}
+		}
+
+		// Encode and send frame
+		picData := base64.StdEncoding.EncodeToString(pixels)
+
+		if err := c.SendGif(GifParams{
+			PicNum:    len(gifImg.Image),
+			PicWidth:  64,
+			PicOffset: i,
+			PicID:     1,
+			PicSpeed:  gifImg.Delay[i] * 10, // Convert to milliseconds
+			PicData:   picData,
+		}); err != nil {
+			return fmt.Errorf("failed to send frame %d: %w", i, err)
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	return nil
 }
