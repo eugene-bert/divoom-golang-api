@@ -22,19 +22,25 @@ go get github.com/eugene-bert/divoom-golang-api
 
 ## Quick Start
 
+### Find Your Device
+
+```go
+devices, _ := divoom.DiscoverDevices()
+fmt.Println(devices[0].DeviceIP) // e.g. "192.168.2.180"
+```
+
 ### Simple Text Display
 
 ```go
-package main
+client := divoom.NewClient("192.168.2.180")
+client.DisplayText("Hello World!", "#00FF00")
+```
 
-import "github.com/eugene-bert/divoom-golang-api"
+### Display an Image
 
-func main() {
-    client := divoom.NewClient("192.168.1.180")
-
-    // Display text - one line!
-    client.DisplayText("Hello World!", "#00FF00")
-}
+```go
+client.DisplayImageFile("photo.jpg")
+client.DisplayImageURL("https://cataas.com/cat?width=200")
 ```
 
 ### Canvas Drawing
@@ -152,7 +158,6 @@ divoom-golang-api/
 ├── tools.go           # Timer, buzzer, etc.
 ├── system.go          # System settings
 ├── docs/              # Documentation
-├── swagger/           # OpenAPI specification
 └── examples/          # Example programs
 
 ```

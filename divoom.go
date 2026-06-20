@@ -2,6 +2,7 @@ package divoom
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -33,14 +34,17 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 	c.httpClient.Timeout = timeout
 }
 
-// sendCommand sends a command to the device and returns the response
 func (c *Client) sendCommand(payload interface{}) (*StandardResponse, error) {
+	return c.sendCommandCtx(context.Background(), payload)
+}
+
+func (c *Client) sendCommandCtx(ctx context.Context, payload interface{}) (*StandardResponse, error) {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", c.baseURL, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -74,14 +78,17 @@ func (c *Client) sendCommand(payload interface{}) (*StandardResponse, error) {
 	return &result, nil
 }
 
-// sendCommandWithResponse sends a command and unmarshals the response into the provided result
 func (c *Client) sendCommandWithResponse(payload interface{}, result interface{}) error {
+	return c.sendCommandWithResponseCtx(context.Background(), payload, result)
+}
+
+func (c *Client) sendCommandWithResponseCtx(ctx context.Context, payload interface{}, result interface{}) error {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", c.baseURL, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

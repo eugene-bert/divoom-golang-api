@@ -1,6 +1,7 @@
 package divoom
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"image"
@@ -119,59 +120,48 @@ func (c *Client) SendColorScreen(rgb uint32) error {
 	})
 }
 
-// DisplayText is a convenience method that properly sets up the custom channel and displays text
-// This is the recommended way to display text on the PIXOO64
-// It automatically switches to Custom channel page 1, sends a blank screen, and overlays text
+// DisplayText sets up the custom channel and displays text on the PIXOO64.
+// It automatically switches to Custom channel page 1, sends a blank screen, and overlays text.
 func (c *Client) DisplayText(text string, color string, opts ...TextOption) error {
-	// Default options
-	params := TextParams{
-		TextID:     1,
-		X:          0,
-		Y:          24,
-		Direction:  0,
-		Font:       4,
-		TextWidth:  64,
-		Speed:      0,
-		TextString: text,
-		Color:      color,
-		Align:      2, // center
-	}
+	return c.DisplayTextContext(context.Background(), text, color, opts...)
+}
 
-	// Apply options
+// DisplayTextContext is like DisplayText but accepts a context for cancellation.
+func (c *Client) DisplayTextContext(ctx context.Context, text string, color string, opts ...TextOption) error {
+	params := TextParams{
+		TextID: 1, X: 0, Y: 24, Direction: 0, Font: 4,
+		TextWidth: 64, Speed: 0, TextString: text, Color: color, Align: 2,
+	}
 	for _, opt := range opts {
 		opt(&params)
 	}
 
-	// Step 1: Reset GIF ID to clear any accumulated GIF data
-	if err := c.ResetGifID(); err != nil {
-		return err
+	steps := []func() error{
+		func() error { return c.ResetGifID() },
+		func() error { return sleep(ctx, 500*time.Millisecond) },
+		func() error { return c.SetChannelIndex(3) },
+		func() error { return sleep(ctx, 500*time.Millisecond) },
+		func() error { return c.SetCustomPageIndex(1) },
+		func() error { return sleep(ctx, 2*time.Second) },
+		func() error { return c.SendBlankScreen() },
+		func() error { return sleep(ctx, 500*time.Millisecond) },
+		func() error { return c.SendText(params) },
 	}
-	time.Sleep(500 * time.Millisecond)
-
-	// Step 2: Switch to Custom channel (required for custom content)
-	if err := c.SetChannelIndex(3); err != nil {
-		return err
+	for _, step := range steps {
+		if err := step(); err != nil {
+			return err
+		}
 	}
-	time.Sleep(500 * time.Millisecond)
-
-	// Step 3: Switch to CustomPageIndex 1 (page 0 shows favorites, page 1 is for custom content)
-	if err := c.SetCustomPageIndex(1); err != nil {
-		return err
-	}
-	time.Sleep(2 * time.Second) // 2 seconds to ensure page switch completes
-
-	// Step 4: Send a blank screen (creates the base animation)
-	if err := c.SendBlankScreen(); err != nil {
-		return err
-	}
-	time.Sleep(500 * time.Millisecond) // Wait for animation to be ready
-
-	// Step 5: Overlay the text on the blank screen
-	return c.SendText(params)
+	return nil
 }
 
-// PlayLocalGif loads and plays a GIF file from the local filesystem
+// PlayLocalGif loads and plays a GIF file from the local filesystem.
 func (c *Client) PlayLocalGif(filePath string) error {
+	return c.PlayLocalGifContext(context.Background(), filePath)
+}
+
+// PlayLocalGifContext is like PlayLocalGif but accepts a context for cancellation.
+func (c *Client) PlayLocalGifContext(ctx context.Context, filePath string) error {
 	// Open the GIF file
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -189,13 +179,13 @@ func (c *Client) PlayLocalGif(filePath string) error {
 		return fmt.Errorf("GIF has no frames")
 	}
 
-	// Reset GIF ID before sending
 	if err := c.ResetGifID(); err != nil {
 		return err
 	}
-	time.Sleep(100 * time.Millisecond)
+	if err := sleep(ctx, 100*time.Millisecond); err != nil {
+		return err
+	}
 
-	// Send each frame
 	for i, frame := range gifImg.Image {
 		// Convert frame to 64x64 RGB bytes
 		pixels := make([]byte, 64*64*3)
@@ -241,16 +231,22 @@ func (c *Client) PlayLocalGif(filePath string) error {
 			return fmt.Errorf("failed to send frame %d: %w", i, err)
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		if err := sleep(ctx, 100*time.Millisecond); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 // DisplayImageFile loads an image file, resizes it to 64x64, and displays it.
-// Handles device setup (channel, page) automatically.
 // Supports PNG, JPEG, and GIF formats.
 func (c *Client) DisplayImageFile(path string) error {
+	return c.DisplayImageFileContext(context.Background(), path)
+}
+
+// DisplayImageFileContext is like DisplayImageFile but accepts a context for cancellation.
+func (c *Client) DisplayImageFileContext(ctx context.Context, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("failed to open image: %w", err)
@@ -262,13 +258,22 @@ func (c *Client) DisplayImageFile(path string) error {
 		return fmt.Errorf("failed to decode image: %w", err)
 	}
 
-	return c.displayImage(img)
+	return c.displayImage(ctx, img)
 }
 
 // DisplayImageURL fetches an image from a URL, resizes it to 64x64, and displays it.
-// Handles device setup (channel, page) automatically.
 func (c *Client) DisplayImageURL(url string) error {
-	resp, err := http.Get(url)
+	return c.DisplayImageURLContext(context.Background(), url)
+}
+
+// DisplayImageURLContext is like DisplayImageURL but accepts a context for cancellation.
+func (c *Client) DisplayImageURLContext(ctx context.Context, url string) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to fetch image: %w", err)
 	}
@@ -283,26 +288,37 @@ func (c *Client) DisplayImageURL(url string) error {
 		return fmt.Errorf("failed to decode image: %w", err)
 	}
 
-	return c.displayImage(img)
+	return c.displayImage(ctx, img)
 }
 
-func (c *Client) displayImage(img image.Image) error {
-	if err := c.ResetGifID(); err != nil {
-		return fmt.Errorf("failed to reset GIF ID: %w", err)
+func (c *Client) displayImage(ctx context.Context, img image.Image) error {
+	steps := []func() error{
+		func() error { return c.ResetGifID() },
+		func() error { return sleep(ctx, 500*time.Millisecond) },
+		func() error { return c.SetChannelIndex(3) },
+		func() error { return sleep(ctx, 500*time.Millisecond) },
+		func() error { return c.SetCustomPageIndex(1) },
+		func() error { return sleep(ctx, 2*time.Second) },
+		func() error {
+			canvas := NewCanvas(c)
+			canvas.DrawImageFill(img)
+			return canvas.Push()
+		},
 	}
-	time.Sleep(500 * time.Millisecond)
-
-	if err := c.SetChannelIndex(3); err != nil {
-		return fmt.Errorf("failed to set channel: %w", err)
+	for _, step := range steps {
+		if err := step(); err != nil {
+			return err
+		}
 	}
-	time.Sleep(500 * time.Millisecond)
+	return nil
+}
 
-	if err := c.SetCustomPageIndex(1); err != nil {
-		return fmt.Errorf("failed to set page: %w", err)
+// sleep waits for duration or until context is cancelled.
+func sleep(ctx context.Context, d time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(d):
+		return nil
 	}
-	time.Sleep(2 * time.Second)
-
-	canvas := NewCanvas(c)
-	canvas.DrawImageFill(img)
-	return canvas.Push()
 }
