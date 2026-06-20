@@ -153,9 +153,22 @@ divoom-golang-api/
 ├── system.go          # System settings
 ├── docs/              # Documentation
 ├── swagger/           # OpenAPI specification
-└── examples/          # Example code
+└── examples/          # Example programs
 
 ```
+
+## Examples
+
+| Example | Description | Usage |
+|---------|-------------|-------|
+| [basic](examples/basic) | Text display + canvas drawing | `go run examples/basic/main.go <ip>` |
+| [image](examples/image) | Display image file or URL | `go run examples/image/main.go <ip> <path-or-url>` |
+| [gif](examples/gif) | Play local GIF animation | `go run examples/gif/main.go <ip> <file.gif>` |
+| [scrolltext](examples/scrolltext) | Scrolling text with color | `go run examples/scrolltext/main.go <ip> "text" [color]` |
+| [clock](examples/clock) | Real-time digital clock | `go run examples/clock/main.go <ip>` |
+| [cpu](examples/cpu) | Live CPU usage graph | `cd examples/cpu && go run . <ip>` |
+
+> The `cpu` example has its own `go.mod` (requires `gopsutil`). All others use only the standard library.
 
 ## License
 
