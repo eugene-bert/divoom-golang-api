@@ -12,7 +12,7 @@ func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintf(os.Stderr, "Usage: %s <device-ip> <gif-path>\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\nExample:\n")
-		fmt.Fprintf(os.Stderr, "  %s 192.168.2.180 animation.gif\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s 192.168.1.100 animation.gif\n", os.Args[0])
 		os.Exit(1)
 	}
 

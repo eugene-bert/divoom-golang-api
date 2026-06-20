@@ -42,7 +42,7 @@ import (
 )
 
 func main() {
-    client := divoom.NewClient("192.168.1.180")
+    client := divoom.NewClient("192.168.1.100")
 
     // EASY WAY: Use the convenience method
     client.SetChannelIndex(3)
@@ -104,7 +104,7 @@ This example includes all the necessary setup steps.
 1. Verify device IP address is correct
 2. Check device is powered on and connected to WiFi
 3. Ensure your computer is on the same network
-4. Try pinging the device: `ping 192.168.1.180`
+4. Try pinging the device: `ping 192.168.1.100`
 5. Increase timeout: `client.SetTimeout(30 * time.Second)`
 
 ### Finding Device IP Address
@@ -255,7 +255,7 @@ import (
 )
 
 func main() {
-    client := divoom.NewClient("192.168.1.180")
+    client := divoom.NewClient("192.168.1.100")
 
     fmt.Println("1. Switching to Custom channel...")
     if err := client.SetChannelIndex(3); err != nil {

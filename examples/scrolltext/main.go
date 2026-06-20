@@ -11,8 +11,8 @@ func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintf(os.Stderr, "Usage: %s <device-ip> <text> [color]\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\nExamples:\n")
-		fmt.Fprintf(os.Stderr, "  %s 192.168.2.180 \"Hello World!\"\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s 192.168.2.180 \"Breaking News\" FF0000\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s 192.168.1.100 \"Hello World!\"\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s 192.168.1.100 \"Breaking News\" FF0000\n", os.Args[0])
 		os.Exit(1)
 	}
 

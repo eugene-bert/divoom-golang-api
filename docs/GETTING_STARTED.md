@@ -20,7 +20,7 @@ go get github.com/eugene-bert/divoom-golang-api
 1. Open the Divoom mobile app
 2. Connect to your PIXOO64 device
 3. Go to Settings → Device Info
-4. Note the IP address (e.g., `192.168.1.180`)
+4. Note the IP address (e.g., `192.168.1.100`)
 
 ## Your First Program
 
@@ -36,7 +36,7 @@ import (
 
 func main() {
     // Replace with your device's IP address
-    client := divoom.NewClient("192.168.1.180")
+    client := divoom.NewClient("192.168.1.100")
 
     // Display text - one line!
     if err := client.DisplayText("Hello PIXOO64!", "#00FF00"); err != nil {

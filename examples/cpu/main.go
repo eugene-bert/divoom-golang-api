@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	ip := "192.168.2.180"
+	ip := "192.168.1.100"
 	if len(os.Args) > 1 {
 		ip = os.Args[1]
 	}

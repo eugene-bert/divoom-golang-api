@@ -26,13 +26,13 @@ go get github.com/eugene-bert/divoom-golang-api
 
 ```go
 devices, _ := divoom.DiscoverDevices()
-fmt.Println(devices[0].DeviceIP) // e.g. "192.168.2.180"
+fmt.Println(devices[0].DeviceIP) // e.g. "192.168.1.100"
 ```
 
 ### Simple Text Display
 
 ```go
-client := divoom.NewClient("192.168.2.180")
+client := divoom.NewClient("192.168.1.100")
 client.DisplayText("Hello World!", "#00FF00")
 ```
 
@@ -51,7 +51,7 @@ package main
 import "github.com/eugene-bert/divoom-golang-api"
 
 func main() {
-    client := divoom.NewClient("192.168.1.180")
+    client := divoom.NewClient("192.168.1.100")
 
     // Setup
     client.ResetGifID()
@@ -141,8 +141,6 @@ client.DisplayText("Custom!", "#FF0000",
 
 - [API Reference](docs/API_REFERENCE.md) - Complete API documentation
 - [Getting Started](docs/GETTING_STARTED.md) - Detailed tutorial
-- [Technical Details](docs/SOLUTION.md) - Implementation notes
-
 ## Project Structure
 
 ```

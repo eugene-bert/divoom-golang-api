@@ -13,8 +13,8 @@ func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintf(os.Stderr, "Usage: %s <device-ip> <image-path-or-url>\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\nExamples:\n")
-		fmt.Fprintf(os.Stderr, "  %s 192.168.2.180 photo.jpg\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s 192.168.2.180 https://placekitten.com/200/200\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s 192.168.1.100 photo.jpg\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s 192.168.1.100 https://placekitten.com/200/200\n", os.Args[0])
 		os.Exit(1)
 	}
 
