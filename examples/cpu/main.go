@@ -97,7 +97,7 @@ func main() {
 			client.SendText(divoom.TextParams{
 				TextID: 1, X: 2, Y: 2, Font: 3, TextWidth: 64,
 				TextString: fmt.Sprintf("%3.0f%%", val),
-				Color: color, Align: 1,
+				Color:      color, Align: 1,
 			})
 		}
 	}

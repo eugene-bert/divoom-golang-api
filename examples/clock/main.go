@@ -42,7 +42,7 @@ func main() {
 			client.SendText(divoom.TextParams{
 				TextID: 1, X: 0, Y: 20, Font: 4, TextWidth: 64,
 				TextString: now.Format("15:04:05"),
-				Color: "#00CCFF", Align: 2,
+				Color:      "#00CCFF", Align: 2,
 			})
 		}
 	}
