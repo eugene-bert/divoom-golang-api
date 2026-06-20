@@ -110,10 +110,10 @@ func TestSetTimeoutConcurrent(t *testing.T) {
 func TestSendCommandWithResponse(t *testing.T) {
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error_code":  0,
-			"Brightness":  75,
-			"CurClockId":  100,
-			"Time24Flag":  1,
+			"error_code": 0,
+			"Brightness": 75,
+			"CurClockId": 100,
+			"Time24Flag": 1,
 		})
 	})
 

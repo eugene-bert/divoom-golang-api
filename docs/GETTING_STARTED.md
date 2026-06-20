@@ -101,7 +101,4 @@ client.DisplayText("This text scrolls!", "#0000FF",
 
 - [README.md](../README.md) - Full documentation
 - [API_REFERENCE.md](API_REFERENCE.md) - Complete API reference
-- [SOLUTION.md](SOLUTION.md) - Technical details
-- Run `go run cmd/swagger-server/main.go` for interactive API docs
-
-**Happy coding!** 🎨
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues and fixes
