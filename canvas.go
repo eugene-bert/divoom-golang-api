@@ -229,6 +229,9 @@ func (c *Canvas) DrawImage(img image.Image, x, y int) {
 // DrawImageResized scales an image to fit the canvas using nearest-neighbor
 // interpolation, then draws it at position (x, y). Uses stdlib only.
 func (c *Canvas) DrawImageResized(img image.Image, x, y, width, height int) {
+	if width <= 0 || height <= 0 {
+		return
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	bounds := img.Bounds()

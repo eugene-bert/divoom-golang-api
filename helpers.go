@@ -273,7 +273,8 @@ func (c *Client) DisplayImageURLContext(ctx context.Context, url string) error {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to fetch image: %w", err)
 	}

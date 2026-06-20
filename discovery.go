@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 const discoveryURL = "https://app.divoom-gz.com/Device/ReturnSameLANDevice"
@@ -33,7 +34,8 @@ func DiscoverDevicesContext(ctx context.Context) ([]DiscoveredDevice, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("discovery request failed: %w", err)
 	}

@@ -1,3 +1,6 @@
+// Package divoom provides a Go client for the Divoom PIXOO64 LED display.
+// It supports text display, canvas drawing, image/GIF rendering, device
+// discovery, and full device control with zero external dependencies.
 package divoom
 
 import (
