@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -18,6 +19,7 @@ type Client struct {
 	deviceIP   string
 	httpClient *http.Client
 	baseURL    string
+	mu         sync.Mutex
 }
 
 // NewClient creates a new Divoom API client
@@ -34,7 +36,9 @@ func NewClient(deviceIP string) *Client {
 
 // SetTimeout sets the HTTP client timeout
 func (c *Client) SetTimeout(timeout time.Duration) {
-	c.httpClient.Timeout = timeout
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.httpClient = &http.Client{Timeout: timeout}
 }
 
 func (c *Client) sendCommand(payload interface{}) (*StandardResponse, error) {
@@ -54,7 +58,7 @@ func (c *Client) sendCommandCtx(ctx context.Context, payload interface{}) (*Stan
 
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.doRequest(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
@@ -98,7 +102,7 @@ func (c *Client) sendCommandWithResponseCtx(ctx context.Context, payload interfa
 
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.doRequest(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
@@ -123,6 +127,13 @@ func (c *Client) sendCommandWithResponseCtx(ctx context.Context, payload interfa
 	}
 
 	return nil
+}
+
+func (c *Client) doRequest(req *http.Request) (*http.Response, error) {
+	c.mu.Lock()
+	client := c.httpClient
+	c.mu.Unlock()
+	return client.Do(req)
 }
 
 // GetDeviceIP returns the device IP address

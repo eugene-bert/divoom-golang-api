@@ -10,6 +10,8 @@ import (
 
 const discoveryURL = "https://app.divoom-gz.com/Device/ReturnSameLANDevice"
 
+var discoveryClient = &http.Client{Timeout: 15 * time.Second}
+
 // DiscoveredDevice represents a Divoom device found on the local network.
 type DiscoveredDevice struct {
 	DeviceName string `json:"DeviceName"`
@@ -34,8 +36,7 @@ func DiscoverDevicesContext(ctx context.Context) ([]DiscoveredDevice, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	httpClient := &http.Client{Timeout: 10 * time.Second}
-	resp, err := httpClient.Do(req)
+	resp, err := discoveryClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("discovery request failed: %w", err)
 	}

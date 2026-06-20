@@ -237,6 +237,27 @@ func TestDrawImageFill(t *testing.T) {
 	}
 }
 
+func TestDrawImageResizedZeroDimensions(t *testing.T) {
+	c := newTestCanvas()
+	img := image.NewRGBA(image.Rect(0, 0, 4, 4))
+	for y := 0; y < 4; y++ {
+		for x := 0; x < 4; x++ {
+			img.Set(x, y, color.RGBA{R: 255, A: 255})
+		}
+	}
+
+	c.DrawImageResized(img, 0, 0, 0, 0)
+	c.DrawImageResized(img, 0, 0, 0, 10)
+	c.DrawImageResized(img, 0, 0, 10, 0)
+	c.DrawImageResized(img, 0, 0, -1, 10)
+
+	for i, b := range c.pixels {
+		if b != 0 {
+			t.Fatalf("zero-dimension DrawImageResized wrote to index %d", i)
+		}
+	}
+}
+
 func TestConcurrentAccess(t *testing.T) {
 	c := newTestCanvas()
 

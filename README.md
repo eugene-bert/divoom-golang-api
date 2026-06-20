@@ -141,6 +141,7 @@ client.DisplayText("Custom!", "#FF0000",
 
 - [API Reference](docs/API_REFERENCE.md) - Complete API documentation
 - [Getting Started](docs/GETTING_STARTED.md) - Detailed tutorial
+
 ## Project Structure
 
 ```

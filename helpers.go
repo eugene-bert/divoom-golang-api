@@ -14,14 +14,6 @@ import (
 	"time"
 )
 
-// min returns the minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 // SendBlankScreen sends a blank black screen to the device on Custom channel page 1
 // IMPORTANT: You must be on Custom channel (3) and CustomPageIndex 1 for this to display
 // Note: Sends a 2-frame animation with DIFFERENT frames (device requires this)
@@ -273,8 +265,8 @@ func (c *Client) DisplayImageURLContext(ctx context.Context, url string) error {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	httpClient := &http.Client{Timeout: 30 * time.Second}
-	resp, err := httpClient.Do(req)
+	imageClient := &http.Client{Timeout: 30 * time.Second}
+	resp, err := imageClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to fetch image: %w", err)
 	}
