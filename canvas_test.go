@@ -198,6 +198,45 @@ func TestDrawImage(t *testing.T) {
 	check(6, 6, 255, 255, 0)
 }
 
+func TestDrawImageResized(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 4, 4))
+	for y := 0; y < 4; y++ {
+		for x := 0; x < 4; x++ {
+			img.Set(x, y, color.RGBA{R: 255, G: 0, B: 0, A: 255})
+		}
+	}
+
+	c := newTestCanvas()
+	c.DrawImageResized(img, 0, 0, 64, 64)
+
+	for y := 0; y < 64; y++ {
+		for x := 0; x < 64; x++ {
+			idx := (y*64 + x) * 3
+			if c.pixels[idx] != 255 {
+				t.Fatalf("DrawImageResized pixel (%d,%d) = %d, want 255", x, y, c.pixels[idx])
+			}
+		}
+	}
+}
+
+func TestDrawImageFill(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
+	for y := 0; y < 128; y++ {
+		for x := 0; x < 128; x++ {
+			img.Set(x, y, color.RGBA{R: 0, G: 128, B: 255, A: 255})
+		}
+	}
+
+	c := newTestCanvas()
+	c.DrawImageFill(img)
+
+	idx := (32*64 + 32) * 3
+	if c.pixels[idx] != 0 || c.pixels[idx+1] != 128 || c.pixels[idx+2] != 255 {
+		t.Errorf("DrawImageFill center pixel = (%d,%d,%d), want (0,128,255)",
+			c.pixels[idx], c.pixels[idx+1], c.pixels[idx+2])
+	}
+}
+
 func TestConcurrentAccess(t *testing.T) {
 	c := newTestCanvas()
 

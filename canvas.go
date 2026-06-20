@@ -208,7 +208,7 @@ func (c *Canvas) SetRefreshLimit(limit int) {
 }
 
 // DrawImage draws a Go image.Image onto the canvas at position (x, y)
-// The image is automatically resized to fit if it's larger than 64x64
+// without resizing. Pixels outside the canvas are clipped.
 func (c *Canvas) DrawImage(img image.Image, x, y int) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -224,6 +224,36 @@ func (c *Canvas) DrawImage(img image.Image, x, y int) {
 			}
 		}
 	}
+}
+
+// DrawImageResized scales an image to fit the canvas using nearest-neighbor
+// interpolation, then draws it at position (x, y). Uses stdlib only.
+func (c *Canvas) DrawImageResized(img image.Image, x, y, width, height int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	bounds := img.Bounds()
+	srcW := bounds.Dx()
+	srcH := bounds.Dy()
+
+	for dy := 0; dy < height; dy++ {
+		for dx := 0; dx < width; dx++ {
+			srcX := bounds.Min.X + (dx * srcW / width)
+			srcY := bounds.Min.Y + (dy * srcH / height)
+			if srcX >= bounds.Max.X {
+				srcX = bounds.Max.X - 1
+			}
+			if srcY >= bounds.Max.Y {
+				srcY = bounds.Max.Y - 1
+			}
+			r, g, b, _ := img.At(srcX, srcY).RGBA()
+			c.setPixel(x+dx, y+dy, byte(r>>8), byte(g>>8), byte(b>>8))
+		}
+	}
+}
+
+// DrawImageFill scales an image to fill the entire 64x64 canvas.
+func (c *Canvas) DrawImageFill(img image.Image) {
+	c.DrawImageResized(img, 0, 0, c.width, c.height)
 }
 
 // LoadImageFromFile loads an image file and returns it as image.Image

@@ -3,8 +3,12 @@ package divoom
 import (
 	"encoding/base64"
 	"fmt"
+	"image"
 	"image/color"
 	"image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"net/http"
 	"os"
 	"time"
 )
@@ -241,4 +245,64 @@ func (c *Client) PlayLocalGif(filePath string) error {
 	}
 
 	return nil
+}
+
+// DisplayImageFile loads an image file, resizes it to 64x64, and displays it.
+// Handles device setup (channel, page) automatically.
+// Supports PNG, JPEG, and GIF formats.
+func (c *Client) DisplayImageFile(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("failed to open image: %w", err)
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	return c.displayImage(img)
+}
+
+// DisplayImageURL fetches an image from a URL, resizes it to 64x64, and displays it.
+// Handles device setup (channel, page) automatically.
+func (c *Client) DisplayImageURL(url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("failed to fetch image: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("unexpected HTTP status: %d", resp.StatusCode)
+	}
+
+	img, _, err := image.Decode(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	return c.displayImage(img)
+}
+
+func (c *Client) displayImage(img image.Image) error {
+	if err := c.ResetGifID(); err != nil {
+		return fmt.Errorf("failed to reset GIF ID: %w", err)
+	}
+	time.Sleep(500 * time.Millisecond)
+
+	if err := c.SetChannelIndex(3); err != nil {
+		return fmt.Errorf("failed to set channel: %w", err)
+	}
+	time.Sleep(500 * time.Millisecond)
+
+	if err := c.SetCustomPageIndex(1); err != nil {
+		return fmt.Errorf("failed to set page: %w", err)
+	}
+	time.Sleep(2 * time.Second)
+
+	canvas := NewCanvas(c)
+	canvas.DrawImageFill(img)
+	return canvas.Push()
 }
