@@ -157,10 +157,6 @@ divoom-golang-api/
 
 ```
 
-## Examples
-
-See the `examples/` directory for more examples.
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.

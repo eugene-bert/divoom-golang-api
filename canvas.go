@@ -41,6 +41,8 @@ func NewCanvas(client *Client) *Canvas {
 
 // Clear fills the canvas with a color
 func (c *Canvas) Clear(r, g, b byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	for i := 0; i < c.width*c.height; i++ {
 		c.pixels[i*3] = r
 		c.pixels[i*3+1] = g
@@ -48,8 +50,14 @@ func (c *Canvas) Clear(r, g, b byte) {
 	}
 }
 
-// SetPixel sets a single pixel
+// SetPixel sets a single pixel (thread-safe)
 func (c *Canvas) SetPixel(x, y int, r, g, b byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.setPixel(x, y, r, g, b)
+}
+
+func (c *Canvas) setPixel(x, y int, r, g, b byte) {
 	if x < 0 || x >= c.width || y < 0 || y >= c.height {
 		return
 	}
@@ -61,6 +69,8 @@ func (c *Canvas) SetPixel(x, y int, r, g, b byte) {
 
 // DrawLine draws a line (Bresenham's algorithm)
 func (c *Canvas) DrawLine(x1, y1, x2, y2 int, r, g, b byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	dx := abs(x2 - x1)
 	dy := abs(y2 - y1)
 	sx := 1
@@ -74,7 +84,7 @@ func (c *Canvas) DrawLine(x1, y1, x2, y2 int, r, g, b byte) {
 	err := dx - dy
 
 	for {
-		c.SetPixel(x1, y1, r, g, b)
+		c.setPixel(x1, y1, r, g, b)
 		if x1 == x2 && y1 == y2 {
 			break
 		}
@@ -92,6 +102,8 @@ func (c *Canvas) DrawLine(x1, y1, x2, y2 int, r, g, b byte) {
 
 // FillRectangle draws a filled rectangle
 func (c *Canvas) FillRectangle(x1, y1, x2, y2 int, r, g, b byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if x1 > x2 {
 		x1, x2 = x2, x1
 	}
@@ -100,26 +112,28 @@ func (c *Canvas) FillRectangle(x1, y1, x2, y2 int, r, g, b byte) {
 	}
 	for y := y1; y <= y2; y++ {
 		for x := x1; x <= x2; x++ {
-			c.SetPixel(x, y, r, g, b)
+			c.setPixel(x, y, r, g, b)
 		}
 	}
 }
 
 // DrawCircle draws a circle outline using midpoint circle algorithm
 func (c *Canvas) DrawCircle(centerX, centerY, radius int, r, g, b byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	x := radius
 	y := 0
 	err := 0
 
 	for x >= y {
-		c.SetPixel(centerX+x, centerY+y, r, g, b)
-		c.SetPixel(centerX+y, centerY+x, r, g, b)
-		c.SetPixel(centerX-y, centerY+x, r, g, b)
-		c.SetPixel(centerX-x, centerY+y, r, g, b)
-		c.SetPixel(centerX-x, centerY-y, r, g, b)
-		c.SetPixel(centerX-y, centerY-x, r, g, b)
-		c.SetPixel(centerX+y, centerY-x, r, g, b)
-		c.SetPixel(centerX+x, centerY-y, r, g, b)
+		c.setPixel(centerX+x, centerY+y, r, g, b)
+		c.setPixel(centerX+y, centerY+x, r, g, b)
+		c.setPixel(centerX-y, centerY+x, r, g, b)
+		c.setPixel(centerX-x, centerY+y, r, g, b)
+		c.setPixel(centerX-x, centerY-y, r, g, b)
+		c.setPixel(centerX-y, centerY-x, r, g, b)
+		c.setPixel(centerX+y, centerY-x, r, g, b)
+		c.setPixel(centerX+x, centerY-y, r, g, b)
 
 		if err <= 0 {
 			y++
@@ -134,10 +148,12 @@ func (c *Canvas) DrawCircle(centerX, centerY, radius int, r, g, b byte) {
 
 // FillCircle draws a filled circle
 func (c *Canvas) FillCircle(centerX, centerY, radius int, r, g, b byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	for y := -radius; y <= radius; y++ {
 		for x := -radius; x <= radius; x++ {
 			if x*x+y*y <= radius*radius {
-				c.SetPixel(centerX+x, centerY+y, r, g, b)
+				c.setPixel(centerX+x, centerY+y, r, g, b)
 			}
 		}
 	}
@@ -194,6 +210,8 @@ func (c *Canvas) SetRefreshLimit(limit int) {
 // DrawImage draws a Go image.Image onto the canvas at position (x, y)
 // The image is automatically resized to fit if it's larger than 64x64
 func (c *Canvas) DrawImage(img image.Image, x, y int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	bounds := img.Bounds()
 	for py := bounds.Min.Y; py < bounds.Min.Y+bounds.Dy(); py++ {
 		for px := bounds.Min.X; px < bounds.Min.X+bounds.Dx(); px++ {
@@ -202,8 +220,7 @@ func (c *Canvas) DrawImage(img image.Image, x, y int) {
 
 			if targetX >= 0 && targetX < c.width && targetY >= 0 && targetY < c.height {
 				r, g, b, _ := img.At(px, py).RGBA()
-				// Convert from 16-bit to 8-bit
-				c.SetPixel(targetX, targetY, byte(r>>8), byte(g>>8), byte(b>>8))
+				c.setPixel(targetX, targetY, byte(r>>8), byte(g>>8), byte(b>>8))
 			}
 		}
 	}

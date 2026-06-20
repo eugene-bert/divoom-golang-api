@@ -221,12 +221,17 @@ func (c *Client) PlayLocalGif(filePath string) error {
 		// Encode and send frame
 		picData := base64.StdEncoding.EncodeToString(pixels)
 
+		picSpeed := 100
+		if i < len(gifImg.Delay) {
+			picSpeed = gifImg.Delay[i] * 10
+		}
+
 		if err := c.SendGif(GifParams{
 			PicNum:    len(gifImg.Image),
 			PicWidth:  64,
 			PicOffset: i,
 			PicID:     1,
-			PicSpeed:  gifImg.Delay[i] * 10, // Convert to milliseconds
+			PicSpeed:  picSpeed,
 			PicData:   picData,
 		}); err != nil {
 			return fmt.Errorf("failed to send frame %d: %w", i, err)

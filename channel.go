@@ -24,15 +24,9 @@ func (c *Client) GetAllConf() (*AllConfigResponse, error) {
 	}
 
 	var result AllConfigResponse
-	err := c.sendCommandWithResponse(payload, &result)
-	if err != nil {
+	if err := c.sendCommandWithResponse(payload, &result); err != nil {
 		return nil, err
 	}
-
-	if result.ErrorCode != 0 {
-		return nil, fmt.Errorf("device returned error code: %d", result.ErrorCode)
-	}
-
 	return &result, nil
 }
 
@@ -73,15 +67,9 @@ func (c *Client) GetChannelIndex() (int, error) {
 		SelectIndex int `json:"SelectIndex"`
 	}
 
-	err := c.sendCommandWithResponse(payload, &result)
-	if err != nil {
+	if err := c.sendCommandWithResponse(payload, &result); err != nil {
 		return 0, err
 	}
-
-	if result.ErrorCode != 0 {
-		return 0, fmt.Errorf("device returned error code: %d", result.ErrorCode)
-	}
-
 	return result.SelectIndex, nil
 }
 

@@ -18,15 +18,9 @@ func (c *Client) GetDeviceTime() (*DeviceTime, error) {
 	}
 
 	var result DeviceTime
-	err := c.sendCommandWithResponse(payload, &result)
-	if err != nil {
+	if err := c.sendCommandWithResponse(payload, &result); err != nil {
 		return nil, err
 	}
-
-	if result.ErrorCode != 0 {
-		return nil, fmt.Errorf("device returned error code: %d", result.ErrorCode)
-	}
-
 	return &result, nil
 }
 

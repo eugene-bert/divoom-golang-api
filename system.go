@@ -1,7 +1,5 @@
 package divoom
 
-import "fmt"
-
 // SetLogAndLat sets the longitude and latitude for weather information
 func (c *Client) SetLogAndLat(longitude, latitude string) error {
 	payload := map[string]interface{}{
@@ -31,14 +29,8 @@ func (c *Client) GetWeatherInfo() (*WeatherInfo, error) {
 	}
 
 	var result WeatherInfo
-	err := c.sendCommandWithResponse(payload, &result)
-	if err != nil {
+	if err := c.sendCommandWithResponse(payload, &result); err != nil {
 		return nil, err
 	}
-
-	if result.ErrorCode != 0 {
-		return nil, fmt.Errorf("device returned error code: %d", result.ErrorCode)
-	}
-
 	return &result, nil
 }

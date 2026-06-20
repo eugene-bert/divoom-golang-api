@@ -53,6 +53,10 @@ func (c *Client) sendCommand(payload interface{}) (*StandardResponse, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected HTTP status: %d", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
@@ -90,6 +94,10 @@ func (c *Client) sendCommandWithResponse(payload interface{}, result interface{}
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("unexpected HTTP status: %d", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response: %w", err)
@@ -97,6 +105,11 @@ func (c *Client) sendCommandWithResponse(payload interface{}, result interface{}
 
 	if err := json.Unmarshal(body, result); err != nil {
 		return fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	var stdResp StandardResponse
+	if err := json.Unmarshal(body, &stdResp); err == nil && stdResp.ErrorCode != 0 {
+		return fmt.Errorf("device returned error code: %d", stdResp.ErrorCode)
 	}
 
 	return nil
