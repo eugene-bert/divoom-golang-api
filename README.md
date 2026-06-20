@@ -4,6 +4,7 @@ A complete Golang API client for the Divoom PIXOO64 LED display device.
 
 [![CI](https://github.com/eugene-bert/divoom-golang-api/actions/workflows/go.yml/badge.svg)](https://github.com/eugene-bert/divoom-golang-api/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/eugene-bert/divoom-golang-api)](https://goreportcard.com/report/github.com/eugene-bert/divoom-golang-api)
+[![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://go.dev/)
 
